@@ -87,7 +87,7 @@ type EspressoMode struct {
 }
 
 var modes = []EspressoMode{
-	{"Milk", 3 * time.Minute, "No caffeine,just for testing purposes."},
+	{"Milk", 3 * time.Minute, "No caffeine, just for testing purposes."},
 	{"Drop", 10 * time.Minute, "Just a drop, almost no caffeine."},
 	{"Latte", 30 * time.Minute, "Gentle boost to get you started."},
 	{"Cappuccino", 1 * time.Hour, "Noticeable caffeine, perfectly balanced."},
@@ -395,15 +395,14 @@ func onReady() {
 	systray.AddSeparator()
 
 	// --- Dynamic Menu Creation ---
-	controlCh := make(chan time.Duration)
+	controlCh := make(chan EspressoMode)
 
 	for _, mode := range modes {
 		label := fmt.Sprintf("%s (%s)", mode.Name, formatFriendlyDuration(mode.Duration))
 		item := systray.AddMenuItem(label, mode.Desc)
-		mDuration := mode.Duration
 		go func() {
 			for range item.ClickedCh {
-				controlCh <- mDuration
+				controlCh <- mode
 			}
 		}()
 	}
@@ -483,16 +482,18 @@ func onReady() {
 
 			case <-mStop.ClickedCh:
 				resetState()
-				showToast("Espresso Stopped", "System is now allowed to sleep.", icoffPath())
+				showToast("Espresso Stopped", "System is now allowed to sleep", icoffPath())
 
-			case d := <-controlCh:
+			case m := <-controlCh:
+				d := m.Duration
 				startSession(d)
+				var durationText string
 				if d < 0 {
-					showToast("Caffeine Injected", "Preventing sleep indefinitely.", iconPath())
+					durationText = "Preventing sleep indefinitely"
 				} else {
-					// Use friendly format for the start notification too
-					showToast("Espresso Started", fmt.Sprintf("Preventing sleep for %s", formatFriendlyDuration(d)), iconPath())
+					durationText = fmt.Sprintf("%s\nPreventing sleep for %s", m.Desc, formatFriendlyDuration(d))
 				}
+				showToast(fmt.Sprintf("%s Mode Started", m.Name), durationText, iconPath())
 
 			case <-ticker.C:
 				if !isActive {
@@ -511,7 +512,7 @@ func onReady() {
 
 					// Notify User
 					go func() {
-						showToast("Espresso Finished", "Your caffeine session has ended. Sleep mode is now allowed.", icoffPath())
+						showToast("Espresso Finished", "System is now allowed to sleep", icoffPath())
 					}()
 				} else {
 					// Update UI Countdown
