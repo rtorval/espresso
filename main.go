@@ -410,7 +410,7 @@ func onReady() {
 	systray.AddSeparator()
 	mStop := systray.AddMenuItem("Decaf (Stop)", "Allow computer to sleep")
 	systray.AddSeparator()
-	mQuit := systray.AddMenuItem("Quit", "Exit program")
+	mQuit := systray.AddMenuItem("Quit", "Exit Espresso")
 
 	// --- State Variables ---
 	var (
@@ -482,14 +482,14 @@ func onReady() {
 
 			case <-mStop.ClickedCh:
 				resetState()
-				showToast("Espresso Stopped", "System is now allowed to sleep", icoffPath())
+				showToast("Espresso Stopped", "System is now allowed to sleep.", icoffPath())
 
 			case m := <-controlCh:
 				d := m.Duration
 				startSession(d)
 				var durationText string
 				if d < 0 {
-					durationText = "Preventing sleep indefinitely"
+					durationText = "Preventing sleep indefinitely."
 				} else {
 					durationText = fmt.Sprintf("%s\nPreventing sleep for %s", m.Desc, formatFriendlyDuration(d))
 				}
@@ -512,7 +512,7 @@ func onReady() {
 
 					// Notify User
 					go func() {
-						showToast("Espresso Finished", "System is now allowed to sleep", icoffPath())
+						showToast("Espresso Finished", "System is now allowed to sleep.", icoffPath())
 					}()
 				} else {
 					// Update UI Countdown
